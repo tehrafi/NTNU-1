@@ -14,7 +14,7 @@ public class Partner {
 	}
 	
 	Partner p = this.partner;
-	public void setPartner(Partner partner) {
+	/*public void setPartner(Partner partner) {
 		if(this == partner) {
 			throw new IllegalArgumentException("Partner can't be yourself");
 		}else if(partner == null) {
@@ -31,6 +31,18 @@ public class Partner {
 				partner.setPartner(this);
 			}
 			
+		}
+	}*/
+	public void setPartner(Partner p) {
+		if(this == p) {
+			throw new IllegalArgumentException("Partner can't be yourself");
+		}else if(this.partner == null) {
+			this.partner = p;
+			p.partner = this;
+		}else if(this.partner != p && this.partner != null) {
+			this.partner.partner = null;
+			this.partner = p;
+			p.partner = this;
 		}
 	}
 	
