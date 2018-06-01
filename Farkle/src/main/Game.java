@@ -39,6 +39,7 @@ public class Game {
 	private List<Dice> setAside;
 	private Scanner sc;
 	private Player currentPlayer;
+	private int ones, twos, threes, fours, fives, sixes;
 	
 	public Game(Player...players) {
 		this.players = new ArrayList<Player>(Arrays.asList(players));
@@ -65,6 +66,16 @@ public class Game {
 		this.dies = new ArrayList<Dice>(Arrays.asList(d0, d1, d2, d3, d4, d5));
 	}
 	
+	public void setValidRolls() {
+		List<Integer> faces = new ArrayList<Integer>();
+		for(Dice d : dies) {
+			faces.add(d.getFace());
+		}
+		
+		validRolls = dies.stream().filter(p -> (p.isValidRoll() && !p.getIsSetAside()) || (Collections.frequency(faces, p.getFace()) == 3))
+				.collect(Collectors.toList());
+	}
+	
 	//Sets the current player
 	public void setCurrentPlayer(Player p) {
 		this.currentPlayer = p;
@@ -75,20 +86,26 @@ public class Game {
 		players.add(p);
 	}
 	
-	//Checks for score and adds this to the current player.
-	public void checkForScore() {
+	//Sets ones, twos, threes, fours, fives, sixes
+	public void setFrequency() {
 		List<Integer> faces = new ArrayList<Integer>();
 		for(Dice d : setAside) {
 			faces.add(d.getFace());
 		}
 		
+		this.ones = Collections.frequency(faces, 1);
+		this.twos = Collections.frequency(faces, 2);
+		this.threes = Collections.frequency(faces, 3);
+		this.fours = Collections.frequency(faces, 4);
+		this.fives = Collections.frequency(faces, 5);
+		this.sixes = Collections.frequency(faces, 6);
+	}
+	
+	//Checks for score and adds this to the current player.
+	public void checkForScore() {
+		
 		int tempScore = 0;
-		int ones = Collections.frequency(faces, 1);
-		int twos = Collections.frequency(faces, 2);
-		int threes = Collections.frequency(faces, 3);
-		int fours = Collections.frequency(faces, 4);
-		int fives = Collections.frequency(faces, 5);
-		int sixes = Collections.frequency(faces, 6);
+		setFrequency();
 		
 		if(currentPlayer.getNumberOfThrows() == 1) {
 			if(ones == 3) {
@@ -153,7 +170,6 @@ public class Game {
 		}
 	}
 	
-	
 	//Rolls all dies
 	public void rollAll() {
 		setDies();
@@ -163,8 +179,7 @@ public class Game {
 			System.out.println("Dice " + i + " rolls: " + d.getFace());
 			i++;
 		}
-		validRolls = dies.stream().filter(p -> p.isValidRoll() && !p.getIsSetAside())
-				.collect(Collectors.toList());
+		setValidRolls();
 		currentPlayer.incrementNumberOfThrows();
 	}
 	
@@ -178,13 +193,18 @@ public class Game {
 			System.out.println("Dice " + i + " rolls: " + d.getFace());
 			i++;
 		}
-		validRolls = dies.stream().filter(p -> p.isValidRoll() && !p.getIsSetAside())
-				.collect(Collectors.toList());
+		
+		List<Integer> faces = new ArrayList<Integer>();
+		for(Dice d : dies) {
+			faces.add(d.getFace());
+		}
+		setValidRolls();
 		currentPlayer.incrementNumberOfThrows();
 	}
 	
 	//Changes the player based on ID. 1 goes first, then changes to 2, to 3 etc.. And back to 1
 	public void changePlayer() {
+		currentPlayer.setNumberOfThrows(0);
 		if(currentPlayer.getId() == Player.COUNTER - 1) {
 			printCurrentScore();
 			currentPlayer = players.stream().filter(p -> p.getId() == 0).findAny().get();
@@ -242,7 +262,8 @@ public class Game {
 				}else if(checkFarkle()) {
 					System.out.println("You farkled! All points are lost");
 					setAside = new ArrayList<Dice>();
-					break;
+					changePlayer();
+					continue;
 				}
 			} 
 				String ans = "N";
@@ -263,14 +284,21 @@ public class Game {
 							String[] aside = sc.nextLine().split(";");
 							
 							List<Dice> tempList = new ArrayList<Dice>();
+							List<Integer> tempListInt = new ArrayList<Integer>();
+							for(String s : aside) {
+								tempListInt.add(dies.get(Integer.parseInt(s)-1).getFace());
+							}
 							asideLoop : for(String s : aside) {
-								if(dies.get(Integer.parseInt(s)-1).getFace() == 5 || dies.get(Integer.parseInt(s)-1).getFace() == 1) {
+								if((dies.get(Integer.parseInt(s)-1).getFace() == 5 || dies.get(Integer.parseInt(s)-1).getFace() == 1)
+										|| (Collections.frequency(tempListInt, (dies.get(Integer.parseInt(s)-1)).getFace()) == 3)) {
 									if(!tempList.contains(dies.get(Integer.parseInt(s) - 1))) {
 										tempList.add(dies.get(Integer.parseInt(s) - 1)); 
 									}
 									valid = true;
 								}else {
 									System.out.println("Dice " + s + " can't be sat aside");
+									System.out.println("Face: " + dies.get(Integer.parseInt(s)-1).getFace());
+									System.out.println(Collections.frequency(dies, (dies.get(Integer.parseInt(s)-1)).getFace()) == 3);
 									valid = false;
 									continue asideLoop;
 								}
@@ -289,6 +317,7 @@ public class Game {
 							}
 							
 						}
+						
 						validRolls = new ArrayList<Dice>();
 						System.out.println("\nDo you want to end your turn (Y/N)? ");
 						sc = new Scanner(System.in);

@@ -11,6 +11,7 @@ public class Dice {
 	private Random rand;
 	private boolean isSetAside;
 	
+	
 	public Dice() {
 		this.validRolls = new ArrayList<Integer>(Arrays.asList(1,5));
 		this.rand = new Random();
@@ -38,6 +39,7 @@ public class Dice {
 	}
 	
 	public boolean isValidRoll() {
+		
 		return validRolls.contains(face);
 	}
 	
