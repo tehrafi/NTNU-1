@@ -8,7 +8,7 @@ def cumulative(weights):
         for j in range(0, cols):
             if j == 0:
                 new[i][j] += min(new[i][j] + new[i+1][j], new[i][j+1] + new[i+1][j])
-            elif 
+            elif
 
 
 print(cumulative(weights))
